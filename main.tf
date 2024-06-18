@@ -22,15 +22,10 @@ locals {
   tags = merge(var.tags, { terraform-aws-modules = "opensearch" })
 }
 
-################################################################################
-# Domain
-################################################################################
 
 resource "aws_opensearch_domain" "this" {
   count = var.create ? 1 : 0
 
-  # Controlled via aws_opensearch_domain_policy below
-  # access_policies  = var.access_policies
   advanced_options = var.advanced_options
 
   dynamic "advanced_security_options" {
@@ -226,9 +221,6 @@ resource "aws_opensearch_domain" "this" {
   tags = local.tags
 }
 
-################################################################################
-# Package Association(s)
-################################################################################
 
 resource "aws_opensearch_package_association" "this" {
   for_each = { for k, v in var.package_associations : k => v if var.create }
@@ -236,10 +228,6 @@ resource "aws_opensearch_package_association" "this" {
   package_id  = try(each.value.package_id, each.key)
   domain_name = aws_opensearch_domain.this[0].domain_name
 }
-
-################################################################################
-# VPC Endpoint(s)
-################################################################################
 
 resource "aws_opensearch_vpc_endpoint" "this" {
   for_each = { for k, v in var.vpc_endpoints : k => v if var.create }
@@ -251,10 +239,6 @@ resource "aws_opensearch_vpc_endpoint" "this" {
     subnet_ids         = each.value.subnet_ids
   }
 }
-
-################################################################################
-# Access Policy
-################################################################################
 
 locals {
   create_access_policy = var.create && var.create_access_policy && (length(var.access_policy_statements) > 0 || length(var.access_policy_source_policy_documents) > 0 || length(var.access_policy_override_policy_documents) > 0)
@@ -317,10 +301,6 @@ data "aws_iam_policy_document" "this" {
   }
 }
 
-################################################################################
-# SAML Options
-################################################################################
-
 resource "aws_opensearch_domain_saml_options" "this" {
   count = var.create && var.create_saml_options ? 1 : 0
 
@@ -349,10 +329,6 @@ resource "aws_opensearch_domain_saml_options" "this" {
     }
   }
 }
-
-################################################################################
-# Outbound Connections
-################################################################################
 
 resource "aws_opensearch_outbound_connection" "this" {
   for_each = { for k, v in var.outbound_connections : k => v if var.create }
@@ -387,10 +363,6 @@ resource "aws_opensearch_outbound_connection" "this" {
     domain_name = each.value.remote_domain_info.domain_name
   }
 }
-
-################################################################################
-# Cloudwatch Log Group
-################################################################################
 
 locals {
   create_cloudwatch_log_groups = var.create && var.create_cloudwatch_log_groups
@@ -445,10 +417,6 @@ resource "aws_cloudwatch_log_resource_policy" "this" {
   policy_document = data.aws_iam_policy_document.cloudwatch[0].json
   policy_name     = coalesce(var.cloudwatch_log_resource_policy_name, "opensearch-${var.domain_name}")
 }
-
-################################################################################
-# Security Group
-################################################################################
 
 locals {
   create_security_group = var.create && var.create_security_group && length(var.vpc_options) > 0
@@ -515,9 +483,6 @@ resource "aws_vpc_security_group_egress_rule" "this" {
   tags = merge(local.tags, var.security_group_tags, try(each.value.tags, {}))
 }
 
-##----------------------------------------------------------------------------------
-## Below resources will create KMS-KEY and its components.
-##----------------------------------------------------------------------------------
 resource "aws_kms_key" "default" {
   count                    = var.enable && var.kms_key_enabled && var.kms_key_id == "" ? 1 : 0
   description              = var.kms_description
