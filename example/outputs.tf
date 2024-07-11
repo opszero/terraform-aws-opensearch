@@ -47,3 +47,15 @@ output "security_group_id" {
   value       = module.opensearch.security_group_id
   description = "ID of the security group"
 }
+
+output "master_user_name" {
+  value       = module.opensearch.master_user_name
+  description = "The master user name for the AWS OpenSearch domain."
+}
+
+output "master_user_password" {
+  value       = module.opensearch.master_user_password
+  sensitive   = true
+  description = "The master user password for the AWS OpenSearch domain."
+
+}
