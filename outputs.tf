@@ -47,3 +47,14 @@ output "security_group_id" {
   description = "ID of the security group"
   value       = try(aws_security_group.this[0].id, null)
 }
+
+output "master_user_name" {
+  description = "The master user name for the AWS OpenSearch domain."
+  value       = aws_opensearch_domain.this[0].advanced_security_options[0].master_user_options[0].master_user_name
+}
+
+output "master_user_password" {
+  description = "The master user password for the AWS OpenSearch domain."
+  value       = aws_opensearch_domain.this[0].advanced_security_options[0].master_user_options[0].master_user_password
+  sensitive   = true
+}

@@ -5,5 +5,5 @@
 .idea
 *.iml
 *.hcl
-/*.terraform.tfstate.lock.info
-/*.tfstate.lock.info
+*/.terraform.tfstate.lock.info
+*/.tfstate.lock.info
